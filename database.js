@@ -16,10 +16,10 @@ const local_connection = new Pool
 function local_client() {
     local_connection.query(`SELECT 1`, (err, res) => {
         if (err) {
-            console_log(`Error connecting to {${process.env.LOCAL_HOST}}`);
+            console.log(`Error connecting to {${process.env.LOCAL_HOST}}`);
             setTimeout(local_client, 60000);
         } else {
-            console_log(`Successfully connected to {${process.env.LOCAL_HOST}}`);
+            console.log(`Successfully connected to {${process.env.LOCAL_HOST}}`);
         }
     });
 }

@@ -2,8 +2,11 @@ const axios = require('axios');
 const fs = require('fs');
 const csv = require('csv-parser');
 const players = [];
-const interval = 5000;
+const interval = 1000;
 const https = require('https');
+const { local_connection } = require('./database');
+
+
 fs.createReadStream('/usr/local/var/www/cmw-playerinfo-api/Playersinfo.csv')
     .pipe(csv())
     .on('data', async function (data) {
@@ -22,7 +25,18 @@ fs.createReadStream('/usr/local/var/www/cmw-playerinfo-api/Playersinfo.csv')
             setTimeout(async () => {
                 await requestVitruvian(item)
                     .then(async function (response) {
-                        console.log(response);
+                        console.log(response.tags);
+                        const query = `INSERT INTO cmw_playerinfo(playertoken,info,profile,tags) VALUES ($1,$2,$3,$4)`;
+
+                        const values = [response.playertoken, response.info, response.profile, response.tags];
+
+                        local_connection.query(query, values, (err, res) => {
+                            if (err) {
+                                console.log(err); 
+                            } else {
+                               console.log(res);
+                            }
+                        });
                     }).catch(async function (err) {
                         console.log(err);
                     }).finally(async function () {
@@ -37,7 +51,7 @@ fs.createReadStream('/usr/local/var/www/cmw-playerinfo-api/Playersinfo.csv')
     });
 
 
-async function requestVitruvian(item) {
+async function requestVitruvian(item, retries = 10) {
     const parsedData = JSON.parse(item);
     const playerToken = parsedData.player_token;
 
