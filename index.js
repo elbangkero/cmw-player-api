@@ -5,7 +5,7 @@ dotenv.config();
 const cors = require('cors');
 app.use(cors());
 app.options('*', cors()); 
- 
+require('./api')(app);
 app.listen(`${process.env.PORT}`, () => {
   console.log('API listening on port : ' + `${process.env.PORT}`);
 });
