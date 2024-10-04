@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const csv = require('csv-parser');
 const players = [];
-const interval = 1000;
+const interval = 500;
 const https = require('https');
 const { local_connection } = require('./database');
 
@@ -21,28 +21,36 @@ fs.createReadStream('/usr/local/var/www/cmw-playerinfo-api/Playersinfo.csv')
         }));
     })
     .on('end', () => {
+
+        let dynamic_counter = {};
+        let counter_name = 'counter';
+        dynamic_counter[counter_name] = { fails: 0, success: 0 };
         players.forEach((item, index) => {
             setTimeout(async () => {
+
                 await requestVitruvian(item)
                     .then(async function (response) {
-                        console.log(response.tags);
                         const query = `INSERT INTO cmw_playerinfo(playertoken,info,profile,tags) VALUES ($1,$2,$3,$4)`;
-
                         const values = [response.playertoken, response.info, response.profile, response.tags];
-
                         local_connection.query(query, values, (err, res) => {
                             if (err) {
-                                console.log(err); 
+                                console.log(err);
+                                dynamic_counter.counter.fails++;
                             } else {
-                               console.log(res);
+                                dynamic_counter.counter.success++;
+                                console.log('Inserted Successfully : ', response.playertoken);
                             }
                         });
                     }).catch(async function (err) {
+                        dynamic_counter.counter.fails++;
                         console.log(err);
                     }).finally(async function () {
-
+                        if (players.length == index + 1) {
+                            setTimeout(async () => {
+                                console.log(`Result: ${dynamic_counter.counter.success} Success, ${dynamic_counter.counter.fails} Failed`)
+                            }, index * interval);
+                        }
                     })
-
             }, index * interval);
         });
     })
@@ -93,7 +101,7 @@ async function requestVitruvian(item, retries = 10) {
 
                         if (attempt < retries) {
                             setTimeout(async function () {
-                                console_log(`Retrying... Attempt on Token : ${token} Attempt : ${attempt + 1}`);
+                                console.log(`Retrying... Attempt on Token : ${playerToken} Attempt : ${attempt + 1}`);
                                 await requestVitruvian(attempt + 1);
                             }, attempt * 10000);
                         } else {
