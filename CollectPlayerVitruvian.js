@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const csv = require('csv-parser');
 const players = [];
-const interval = 500;
+const interval = 300;
 const https = require('https');
 const { local_connection } = require('./database');
 
