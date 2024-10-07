@@ -7,7 +7,7 @@ const https = require('https');
 const { local_connection } = require('./database');
 
 
-fs.createReadStream('/usr/local/var/www/cmw-playerinfo-api/Playersinfo.csv')
+fs.createReadStream('PlayersInfo.csv')
     .pipe(csv())
     .on('data', async function (data) {
         const sanitizedData = Object.fromEntries(
